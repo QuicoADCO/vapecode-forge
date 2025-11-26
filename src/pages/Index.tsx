@@ -6,30 +6,21 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-
 const Index = () => {
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const navigate = useNavigate();
-
   useEffect(() => {
     loadFeaturedProducts();
   }, []);
-
   const loadFeaturedProducts = async () => {
-    const { data } = await supabase
-      .from("products")
-      .select("*")
-      .eq("featured", true)
-      .eq("active", true)
-      .limit(4);
-    
+    const {
+      data
+    } = await supabase.from("products").select("*").eq("featured", true).eq("active", true).limit(4);
     if (data) {
       setFeaturedProducts(data);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <AgeVerification />
       <Navbar />
       
@@ -41,7 +32,8 @@ const Index = () => {
             <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent animate-fade-in">
               La Nueva Generación
               <br />
-              del Vapeo
+              ​del Vapeo
+  
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 animate-fade-in">
               Descubre productos premium con tecnología de última generación
@@ -60,8 +52,7 @@ const Index = () => {
       </section>
 
       {/* Featured Products */}
-      {featuredProducts.length > 0 && (
-        <section className="py-20 px-4">
+      {featuredProducts.length > 0 && <section className="py-20 px-4">
           <div className="container mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-4xl font-bold mb-4">Productos Destacados</h2>
@@ -70,17 +61,7 @@ const Index = () => {
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  name={product.name}
-                  price={product.price}
-                  image={product.images?.[0]}
-                  brand={product.brand}
-                  stock={product.stock}
-                />
-              ))}
+              {featuredProducts.map(product => <ProductCard key={product.id} id={product.id} name={product.name} price={product.price} image={product.images?.[0]} brand={product.brand} stock={product.stock} />)}
             </div>
             <div className="text-center mt-12">
               <Button onClick={() => navigate("/products")} size="lg" variant="outline">
@@ -88,8 +69,7 @@ const Index = () => {
               </Button>
             </div>
           </div>
-        </section>
-      )}
+        </section>}
 
       {/* Features */}
       <section className="py-20 px-4 bg-card/50">
@@ -133,8 +113,6 @@ const Index = () => {
           <p className="text-sm mt-2">Venta prohibida a menores de 18 años</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
