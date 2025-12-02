@@ -9,11 +9,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { z } from "zod";
+import { Session } from "@supabase/supabase-js";
 
+// Schema de validación robusto según OWASP y ASVS
 const authSchema = z.object({
-  email: z.string().email({ message: "Email inválido" }).max(255),
-  password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres" }).max(100),
-  fullName: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres" }).max(100).optional(),
+  email: z.string()
+    .trim()
+    .email({ message: "Email inválido" })
+    .max(255, { message: "Email demasiado largo" })
+    .toLowerCase(),
+  password: z.string()
+    .min(6, { message: "La contraseña debe tener al menos 6 caracteres" })
+    .max(100, { message: "Contraseña demasiado larga" }),
+  fullName: z.string()
+    .trim()
+    .min(2, { message: "El nombre debe tener al menos 2 caracteres" })
+    .max(100, { message: "Nombre demasiado largo" })
+    .optional(),
 });
 
 const Auth = () => {
@@ -22,13 +34,30 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
+    // 1. Configurar listener de cambios de autenticación PRIMERO
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        
+        // Redirigir si el usuario inicia sesión
+        if (session && event === 'SIGNED_IN') {
+          navigate("/");
+        }
+      }
+    );
+
+    // 2. Verificar sesión existente (persistencia)
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       if (session) {
         navigate("/");
       }
     });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -44,20 +73,21 @@ const Auth = () => {
       });
 
       if (error) {
+        // Mensajes de error genéricos (seguridad OWASP)
         if (error.message.includes("Invalid login credentials")) {
           toast.error("Email o contraseña incorrectos");
         } else {
-          toast.error(error.message);
+          toast.error("Error al iniciar sesión. Inténtalo de nuevo.");
         }
       } else {
         toast.success("¡Bienvenido!");
-        navigate("/");
+        // No redirigir aquí, onAuthStateChange lo hará
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
       } else {
-        toast.error("Error al iniciar sesión");
+        toast.error("Error al procesar la solicitud");
       }
     } finally {
       setIsLoading(false);
@@ -85,20 +115,21 @@ const Auth = () => {
       });
 
       if (error) {
+        // Mensajes de error genéricos (seguridad OWASP)
         if (error.message.includes("already registered")) {
           toast.error("Este email ya está registrado");
         } else {
-          toast.error(error.message);
+          toast.error("Error al crear la cuenta. Inténtalo de nuevo.");
         }
       } else {
-        toast.success("¡Cuenta creada! Ahora puedes iniciar sesión");
-        navigate("/");
+        toast.success("¡Cuenta creada con éxito!");
+        // Auto-confirm habilitado, sesión iniciada automáticamente
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
       } else {
-        toast.error("Error al crear la cuenta");
+        toast.error("Error al procesar la solicitud");
       }
     } finally {
       setIsLoading(false);
