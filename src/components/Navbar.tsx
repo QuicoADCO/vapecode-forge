@@ -10,12 +10,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { useCart } from "@/contexts/CartContext";
 
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  const { totalItems } = useCart();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -69,6 +72,14 @@ export const Navbar = () => {
             </Link>
             <Link to="/cart" className="text-foreground hover:text-primary transition-colors relative">
               <ShoppingCart className="w-5 h-5" />
+              {totalItems > 0 && (
+                <Badge 
+                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                  variant="destructive"
+                >
+                  {totalItems}
+                </Badge>
+              )}
             </Link>
             
             {user ? (
