@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addItem } = useCart();
   const [product, setProduct] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -149,7 +151,17 @@ const ProductDetail = () => {
               size="lg" 
               className="w-full md:w-auto"
               disabled={product.stock === 0}
-              onClick={() => toast.success("Producto agregado al carrito")}
+              onClick={() => {
+                addItem({
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: images[0],
+                  brand: product.brand,
+                  stock: product.stock,
+                });
+                toast.success("Producto agregado al carrito");
+              }}
             >
               <ShoppingCart className="w-5 h-5 mr-2" />
               Agregar al Carrito
